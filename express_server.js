@@ -6,6 +6,7 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
 
+// generate random string for new URL
 function generateRandomString() {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -17,8 +18,6 @@ function generateRandomString() {
   
   return result;
 }
-
-const newURL = generateRandomString()
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -37,6 +36,7 @@ app.get("/urls", (req, res) => {
 
 // add new URL
 app.post("/urls", (req, res) => {
+  const newURL = generateRandomString()
   const userInput = req.body.longURL
   urlDatabase[newURL] = userInput
   res.redirect(`/urls/${newURL}`)
@@ -48,6 +48,7 @@ app.get("/urls/new", (req, res) => {
 
 // redirect new URL to long URL: route /u/shortURL to longURL
 app.get("/u/:id", (req, res) => {
+  const newURL = req.params.id;
   const longURL = urlDatabase[newURL]
   console.log(urlDatabase[newURL])
   res.redirect(longURL);
