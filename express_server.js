@@ -18,6 +18,7 @@ function generateRandomString() {
   return result;
 }
 generateRandomString()
+const newURL = generateRandomString()
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -34,20 +35,27 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
+  // console.log(req.body); // Log the POST request body to the console
   // res.send("Ok"); // Respond with 'Ok' (we will replace this)
-  const newID = generateRandomString()
-  urlDatabase[newID] = req.body.longURL
-  console.log(urlDatabase)
-  res.redirect(`/urls/${newID}`)
+  const userInput = req.body.longURL
+  urlDatabase[newURL] = userInput
+  // console.log(urlDatabase)
+  res.redirect(`/urls/${newURL}`)
 });
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// send new URL to long URL
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[newURL]
+  console.log(urlDatabase[newURL])
+  res.redirect(longURL);
+});
+
+// short URL page
 app.get("/urls/:id", (req, res) => {
-  console.log(req)
   const id = req.params.id
   const longURL = urlDatabase[id];
   const templateVars = { id: id, longURL: longURL };
