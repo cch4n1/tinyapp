@@ -6,6 +6,19 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
 
+function generateRandomString() {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomIndex);
+  }
+  
+  return result;
+}
+generateRandomString()
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -22,7 +35,11 @@ app.get("/urls", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const newID = generateRandomString()
+  urlDatabase[newID] = req.body.longURL
+  console.log(urlDatabase)
+  res.redirect(`/urls/${newID}`)
 });
 
 app.get("/urls/new", (req, res) => {
@@ -30,6 +47,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  console.log(req)
   const id = req.params.id
   const longURL = urlDatabase[id];
   const templateVars = { id: id, longURL: longURL };
