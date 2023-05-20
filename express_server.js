@@ -17,7 +17,7 @@ function generateRandomString() {
   
   return result;
 }
-generateRandomString()
+
 const newURL = generateRandomString()
 
 const urlDatabase = {
@@ -35,11 +35,8 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  // console.log(req.body); // Log the POST request body to the console
-  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
   const userInput = req.body.longURL
   urlDatabase[newURL] = userInput
-  // console.log(urlDatabase)
   res.redirect(`/urls/${newURL}`)
 });
 
@@ -58,6 +55,7 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id
   const shortURLArray = Object.keys(urlDatabase)
+  // check if short URL is stored
   if (shortURLArray.includes(id)) {
     const longURL = urlDatabase[id];
     const templateVars = { id: id, longURL: longURL };
