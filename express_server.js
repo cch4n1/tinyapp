@@ -32,8 +32,10 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+  console.log(templateVars)
 });
 
+// add new URL
 app.post("/urls", (req, res) => {
   const userInput = req.body.longURL
   urlDatabase[newURL] = userInput
@@ -55,7 +57,7 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id
   const shortURLArray = Object.keys(urlDatabase)
-  // check if short URL is stored
+  // check if short URL is already stored before loading urls_show page
   if (shortURLArray.includes(id)) {
     const longURL = urlDatabase[id];
     const templateVars = { id: id, longURL: longURL };
@@ -63,6 +65,13 @@ app.get("/urls/:id", (req, res) => {
   } else {
 return res.send("URL does not exist!");
   }
+});
+
+// delete functionality
+app.post("/urls/:id/delete", (req, res) => {
+  const id = req.params.id  // get dynamic part of URL and assign to id variable. Extract the value of the "id" parameter from the request parameters using req.params.id. 
+  delete urlDatabase[id]
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
