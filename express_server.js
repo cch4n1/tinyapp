@@ -47,7 +47,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-// send new URL to long URL
+// redirect new URL to long URL: route /u/shortURL to longURL
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[newURL]
   console.log(urlDatabase[newURL])
@@ -57,9 +57,14 @@ app.get("/u/:id", (req, res) => {
 // short URL page
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id
-  const longURL = urlDatabase[id];
-  const templateVars = { id: id, longURL: longURL };
-  res.render("urls_show", templateVars);
+  const shortURLArray = Object.keys(urlDatabase)
+  if (shortURLArray.includes(id)) {
+    const longURL = urlDatabase[id];
+    const templateVars = { id: id, longURL: longURL };
+    res.render("urls_show", templateVars);
+  } else {
+return res.send("URL does not exist!");
+  }
 });
 
 app.get("/urls.json", (req, res) => {
