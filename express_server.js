@@ -75,6 +75,14 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+// edit functionality
+app.post("/urls/:id/edit", (req, res) => {
+  const id = req.params.id
+  const newURL = req.body.editURL;
+  urlDatabase[id] = newURL;
+  res.redirect("/urls");
+});
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
