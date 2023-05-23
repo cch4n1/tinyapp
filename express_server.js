@@ -1,10 +1,11 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
-
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 // generate random string for new URL
 function generateRandomString() {
@@ -28,13 +29,17 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// urls page
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies["username"] 
+  };
   res.render("urls_index", templateVars);
   console.log(templateVars)
 });
 
-// add new URL
+// add new URL post request
 app.post("/urls", (req, res) => {
   const newURL = generateRandomString()
   const userInput = req.body.longURL
@@ -42,8 +47,12 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newURL}`)
 });
 
+// create new URL page
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { 
+    username: req.cookies["username"] 
+  };
+  res.render("urls_new", templateVars);
 });
 
 // redirect new URL to long URL: route /u/shortURL to longURL
@@ -61,7 +70,11 @@ app.get("/urls/:id", (req, res) => {
   // check if short URL is already stored before loading urls_show page
   if (shortURLArray.includes(id)) {
     const longURL = urlDatabase[id];
-    const templateVars = { id: id, longURL: longURL };
+    const templateVars = { 
+      id: id, 
+      longURL: longURL,
+      username: req.cookies["username"]  
+    };
     res.render("urls_show", templateVars);
   } else {
 return res.send("URL does not exist!");
@@ -83,7 +96,7 @@ app.post("/urls/:id/edit", (req, res) => {
   res.redirect("/urls");
 });
 
-// cookie
+// cookie get username from header
 app.post("/login", (req, res) => {
   const { username } = req.body;
   res.cookie("username", username);
