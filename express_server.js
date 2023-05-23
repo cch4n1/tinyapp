@@ -96,10 +96,16 @@ app.post("/urls/:id/edit", (req, res) => {
   res.redirect("/urls");
 });
 
-// cookie get username from header
+// cookie login function - get username from header
 app.post("/login", (req, res) => {
   const { username } = req.body;
   res.cookie("username", username);
+  res.redirect("/urls");
+})
+
+// cookie logout function - clear cookie
+app.post("/logout", (req, res) => {
+  res.clearCookie('username')
   res.redirect("/urls");
 })
 
