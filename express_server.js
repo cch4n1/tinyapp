@@ -25,9 +25,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+/** Get Requests */
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+
+// new user registration page
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    username: req.cookies["username"] 
+  };
+  res.render("register", templateVars)
+})
 
 // urls page
 app.get("/urls", (req, res) => {
@@ -37,14 +47,6 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
   console.log(templateVars)
-});
-
-// add new URL post request
-app.post("/urls", (req, res) => {
-  const newURL = generateRandomString()
-  const userInput = req.body.longURL
-  urlDatabase[newURL] = userInput
-  res.redirect(`/urls/${newURL}`)
 });
 
 // create new URL page
@@ -79,6 +81,16 @@ app.get("/urls/:id", (req, res) => {
   } else {
 return res.send("URL does not exist!");
   }
+});
+
+/** Post Requests */
+
+// add new URL post request
+app.post("/urls", (req, res) => {
+  const newURL = generateRandomString()
+  const userInput = req.body.longURL
+  urlDatabase[newURL] = userInput
+  res.redirect(`/urls/${newURL}`)
 });
 
 // delete functionality
