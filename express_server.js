@@ -58,7 +58,7 @@ app.get("/urls", (req, res) => {
     username: req.cookies["username"] 
   };
   res.render("urls_index", templateVars);
-  console.log(templateVars)
+  // console.log(templateVars)
 });
 
 // create new URL page
@@ -73,7 +73,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const newURL = req.params.id;
   const longURL = urlDatabase[newURL]
-  console.log(urlDatabase[newURL])
+  // console.log(urlDatabase[newURL])
   res.redirect(longURL);
 });
 
@@ -96,6 +96,20 @@ return res.send("URL does not exist!");
 });
 
 /** Post Requests */
+
+// new user register
+app.post("/register", (req, res) => {
+  // const newURL = generateRandomString()
+  const userID = generateRandomString()
+  users[userID] = {
+    id: userID,
+    email: req.body.email,
+    password: req.body.password
+  }
+  res.cookie("user_id", userID)
+  console.log(users)
+  res.redirect("/urls")
+});
 
 // add new URL post request
 app.post("/urls", (req, res) => {
