@@ -45,17 +45,19 @@ app.get("/", (req, res) => {
 
 // new user registration page
 app.get("/register", (req, res) => {
+  const userID = req.cookies["user_id"]; 
   const templateVars = { 
-    username: req.cookies["username"] 
+    user: users[userID] 
   };
   res.render("register", templateVars)
 })
 
 // urls page
 app.get("/urls", (req, res) => {
+  const userID = req.cookies["user_id"]; 
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies["username"] 
+    user: users[userID] 
   };
   res.render("urls_index", templateVars);
   // console.log(templateVars)
@@ -63,8 +65,9 @@ app.get("/urls", (req, res) => {
 
 // create new URL page
 app.get("/urls/new", (req, res) => {
+  const userID = req.cookies["user_id"]; 
   const templateVars = { 
-    username: req.cookies["username"] 
+    user: users[userID]
   };
   res.render("urls_new", templateVars);
 });
@@ -81,13 +84,14 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id
   const shortURLArray = Object.keys(urlDatabase)
+  const userID = req.cookies["user_id"]; 
   // check if short URL is already stored before loading urls_show page
   if (shortURLArray.includes(id)) {
     const longURL = urlDatabase[id];
     const templateVars = { 
       id: id, 
       longURL: longURL,
-      username: req.cookies["username"]  
+      user: users[userID]
     };
     res.render("urls_show", templateVars);
   } else {
