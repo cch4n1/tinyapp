@@ -19,6 +19,8 @@ function generateRandomString() {
   
   return result;
 }
+
+// users database
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -32,13 +34,26 @@ const users = {
   },
 };
 
+// url database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-/** Get Requests */
+// user lookup function
+const userLookup = function (email) {
+  let found = false;
 
+  for (const userID in users) {
+    if (users[userID].email === email) {
+      found = true;
+    }
+  }
+
+  return found;
+}
+
+/** Get Requests */
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -103,16 +118,30 @@ return res.send("URL does not exist!");
 
 // new user register
 app.post("/register", (req, res) => {
-  // const newURL = generateRandomString()
-  const userID = generateRandomString()
-  users[userID] = {
-    id: userID,
-    email: req.body.email,
-    password: req.body.password
+  const email = req.body.email
+  const password = req.body.password
+  let invalidLogin = false
+  // check if login credentials are valid
+  if (!email || !password) {
+    invalidLogin = true
+  } else {
+    if (userLookup(email)) {
+      invalidLogin = true
+    }
   }
-  res.cookie("user_id", userID)
-  console.log(users)
-  res.redirect("/urls")
+  if (invalidLogin) {
+    res.status(400).send('Error: Invalid credentials.');
+  } else {
+    const userID = generateRandomString()
+    users[userID] = {
+      id: userID,
+      email: email,
+      password: password
+    }
+    res.cookie("user_id", userID)
+    res.redirect("/urls")
+  }
+
 });
 
 // add new URL post request
