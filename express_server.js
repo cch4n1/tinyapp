@@ -176,10 +176,10 @@ app.post("/urls/:id/edit", (req, res) => {
   res.redirect("/urls");
 });
 
-// cookie login function - get username from header
+// cookie login function 
 app.post("/login", (req, res) => {
-  const { username } = req.body;
-  res.cookie("username", username);
+  // const { username } = req.body;
+  // res.cookie("username", username);
   res.redirect("/urls");
 })
 
