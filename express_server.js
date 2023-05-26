@@ -55,7 +55,7 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-// new user registration page
+// new registration page
 app.get("/register", (req, res) => {
   const userID = req.cookies["user_id"]; 
   const templateVars = { 
@@ -64,7 +64,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars)
 })
 
-// login
+// login page
 app.get("/login", (req, res) => {
   const userID = req.cookies["user_id"]; 
   const templateVars = { 
@@ -84,7 +84,7 @@ app.get("/urls", (req, res) => {
   // console.log(templateVars)
 });
 
-// create new URL page
+// create a new URL page
 app.get("/urls/new", (req, res) => {
   const userID = req.cookies["user_id"]; 
   const templateVars = { 
@@ -154,7 +154,7 @@ app.post("/register", (req, res) => {
 
 });
 
-// add new URL post request
+// add new url function
 app.post("/urls", (req, res) => {
   const newURL = generateRandomString()
   const userInput = req.body.longURL
@@ -162,14 +162,14 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newURL}`)
 });
 
-// delete functionality
+// delete url function
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id  // get dynamic part of URL and assign to id variable. Extract the value of the "id" parameter from the request parameters using req.params.id. 
   delete urlDatabase[id];
   res.redirect("/urls");
 });
 
-// edit functionality
+// edit url function
 app.post("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.editURL;
@@ -199,7 +199,7 @@ app.post("/login", (req, res) => {
 // cookie logout function - clear cookie
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id')
-  res.redirect("/urls");
+  res.redirect("/login");
 })
 
 app.get("/urls.json", (req, res) => {
