@@ -42,15 +42,12 @@ const urlDatabase = {
 
 // user lookup function
 const userLookup = function (email) {
-  let found = false;
-
   for (const userID in users) {
     if (users[userID].email === email) {
-      found = true;
+      return users[userID]
     }
   }
-
-  return found;
+  return null;
 }
 
 /** Get Requests */
@@ -134,14 +131,18 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     invalidLogin = true
   } else {
-    if (userLookup(email)) {
+    // Use userLookup function to check if email exists already
+    if (userLookup(email) === email) {
       invalidLogin = true
     }
   }
+
   if (invalidLogin) {
     res.status(400).send('Error: Invalid credentials.');
   } else {
     const userID = generateRandomString()
+
+    // Update the users database to store the new user id, email, password
     users[userID] = {
       id: userID,
       email: email,
@@ -164,13 +165,13 @@ app.post("/urls", (req, res) => {
 // delete functionality
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id  // get dynamic part of URL and assign to id variable. Extract the value of the "id" parameter from the request parameters using req.params.id. 
-  delete urlDatabase[id]
+  delete urlDatabase[id];
   res.redirect("/urls");
 });
 
 // edit functionality
 app.post("/urls/:id/edit", (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   const newURL = req.body.editURL;
   urlDatabase[id] = newURL;
   res.redirect("/urls");
@@ -178,8 +179,20 @@ app.post("/urls/:id/edit", (req, res) => {
 
 // cookie login function 
 app.post("/login", (req, res) => {
-  // const { username } = req.body;
-  // res.cookie("username", username);
+  const email = req.body.email
+  const password = req.body.password
+  const user = userLookup(email)
+  let invalidLogin = true
+
+  // check if login credentials are valid
+  if (user && user.password === password) {
+    invalidLogin = false;
+    res.cookie("user_id", user.id);
+  }
+
+  if (invalidLogin) {
+    res.status(403).send('Error: Invalid credentials.');
+  }
   res.redirect("/urls");
 })
 
