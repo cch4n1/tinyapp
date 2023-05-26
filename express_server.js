@@ -126,18 +126,10 @@ return res.send("URL does not exist!");
 app.post("/register", (req, res) => {
   const email = req.body.email
   const password = req.body.password
-  let invalidLogin = false
-  // check if login credentials are valid
-  if (!email || !password) {
-    invalidLogin = true
-  } else {
-    // Use userLookup function to check if email exists already
-    if (userLookup(email) === email) {
-      invalidLogin = true
-    }
-  }
+  const user = userLookup(email)
 
-  if (invalidLogin) {
+  // check if login credentials are valid
+  if (!email || !password || user) {
     res.status(400).send('Error: Invalid credentials.');
   } else {
     const userID = generateRandomString()
@@ -151,7 +143,7 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", userID)
     res.redirect("/urls")
   }
-
+  console.log(users)
 });
 
 // add new url function
@@ -182,18 +174,18 @@ app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
   const user = userLookup(email)
-  let invalidLogin = true
+  let validLogin = false
 
   // check if login credentials are valid
   if (user && user.password === password) {
-    invalidLogin = false;
+    validLogin = true;
     res.cookie("user_id", user.id);
-  }
+    res.redirect("/urls");
+  } 
 
-  if (invalidLogin) {
+  if (!validLogin) {
     res.status(403).send('Error: Invalid credentials.');
   }
-  res.redirect("/urls");
 })
 
 // cookie logout function - clear cookie
