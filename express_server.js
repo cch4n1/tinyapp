@@ -81,7 +81,6 @@ app.get("/urls", (req, res) => {
     user: users[userID] 
   };
   res.render("urls_index", templateVars);
-  // console.log(templateVars)
 });
 
 // create a new URL page
@@ -99,8 +98,13 @@ app.get("/urls/new", (req, res) => {
 // redirect new URL to long URL: route /u/shortURL to longURL
 app.get("/u/:id", (req, res) => {
   const newURL = req.params.id;
-  const longURL = urlDatabase[newURL]
-  res.redirect(longURL);
+  for (const urlID in urlDatabase) {
+    if (urlID === newURL) {
+      const longURL = urlDatabase[newURL];
+      return res.redirect(longURL);
+    }
+  }
+res.send("URL does not exist!");
 });
 
 // short URL page
