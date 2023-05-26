@@ -97,7 +97,6 @@ app.get("/urls/new", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const newURL = req.params.id;
   const longURL = urlDatabase[newURL]
-  // console.log(urlDatabase[newURL])
   res.redirect(longURL);
 });
 
@@ -143,7 +142,6 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", userID)
     res.redirect("/urls")
   }
-  console.log(users)
 });
 
 // add new url function
