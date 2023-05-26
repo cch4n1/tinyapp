@@ -90,6 +90,9 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
     user: users[userID]
   };
+  if (!userID) {
+    return res.redirect("/login")
+  }
   res.render("urls_new", templateVars);
 });
 
@@ -148,6 +151,10 @@ app.post("/register", (req, res) => {
 app.post("/urls", (req, res) => {
   const newURL = generateRandomString()
   const userInput = req.body.longURL
+  const userID = req.cookies["user_id"];
+  if (!userID) {
+    return res.send("<html><body><b>Please login first to shorten URL!</b></body></html>\n");
+  }
   urlDatabase[newURL] = userInput
   res.redirect(`/urls/${newURL}`)
 });
