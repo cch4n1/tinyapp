@@ -58,18 +58,20 @@ app.get("/", (req, res) => {
 // new registration page
 app.get("/register", (req, res) => {
   const userID = req.cookies["user_id"]; 
-  const templateVars = { 
-    user: users[userID] 
-  };
+  if (userID) {
+    return res.redirect("/urls")
+  }
+  const templateVars = {user : null};
   res.render("register", templateVars)
 })
 
 // login page
 app.get("/login", (req, res) => {
   const userID = req.cookies["user_id"]; 
-  const templateVars = { 
-    user: users[userID] 
-  };
+  if (userID) {
+    return res.redirect("/urls")
+  }
+  const templateVars = {user : null};
   res.render("login", templateVars)
 })
 
@@ -112,6 +114,7 @@ app.get("/urls/:id", (req, res) => {
   const id = req.params.id
   const shortURLArray = Object.keys(urlDatabase)
   const userID = req.cookies["user_id"]; 
+  
   // check if short URL is already stored before loading urls_show page
   if (shortURLArray.includes(id)) {
     const longURL = urlDatabase[id];
