@@ -36,8 +36,14 @@ const users = {
 
 // url database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "userRandomID",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "userRandomID",
+  },
 };
 
 // user lookup function
@@ -102,7 +108,7 @@ app.get("/u/:id", (req, res) => {
   const newURL = req.params.id;
   for (const urlID in urlDatabase) {
     if (urlID === newURL) {
-      const longURL = urlDatabase[newURL];
+      const longURL = urlDatabase[newURL].longURL;
       return res.redirect(longURL);
     }
   }
@@ -114,10 +120,10 @@ app.get("/urls/:id", (req, res) => {
   const id = req.params.id
   const shortURLArray = Object.keys(urlDatabase)
   const userID = req.cookies["user_id"]; 
-  
+
   // check if short URL is already stored before loading urls_show page
   if (shortURLArray.includes(id)) {
-    const longURL = urlDatabase[id];
+    const longURL = urlDatabase[id].longURL;
     const templateVars = { 
       id: id, 
       longURL: longURL,
@@ -156,19 +162,22 @@ app.post("/register", (req, res) => {
 
 // add new url function
 app.post("/urls", (req, res) => {
-  const newURL = generateRandomString()
+  const newUrlID = generateRandomString()
   const userInput = req.body.longURL
   const userID = req.cookies["user_id"];
   if (!userID) {
     return res.send("<html><body><b>Please login first to shorten URL!</b></body></html>\n");
   }
-  urlDatabase[newURL] = userInput
-  res.redirect(`/urls/${newURL}`)
+  urlDatabase[newUrlID] = { 
+    longURL: userInput,
+    userID: userID
+  }
+  res.redirect(`/urls/${newUrlID}`)
 });
 
 // delete url function
 app.post("/urls/:id/delete", (req, res) => {
-  const id = req.params.id  // get dynamic part of URL and assign to id variable. Extract the value of the "id" parameter from the request parameters using req.params.id. 
+  const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
   delete urlDatabase[id];
   res.redirect("/urls");
 });
@@ -177,7 +186,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.editURL;
-  urlDatabase[id] = newURL;
+  urlDatabase[id].longURL = newURL;
   res.redirect("/urls");
 });
 
