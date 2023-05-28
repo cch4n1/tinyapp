@@ -38,23 +38,23 @@ const users = {
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "userRandomID",
+    userID: "1111",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "userRandomID",
+    userID: "1111",
   },
   s9fhGs: {
     longURL: "https://www.yahoo.ca",
-    userID: "userRandomID",
+    userID: "1111",
   },
   g6na7a: {
     longURL: "https://www.wikipedia.org",
-    userID: "user2RandomID",
+    userID: "2222",
   },
   njd7ql: {
     longURL: "https://www.netflix.com",
-    userID: "user2RandomID",
+    userID: "2222",
   },
 };
 
@@ -65,6 +65,7 @@ const userLookup = function (email) {
       return users[userID]
     }
   }
+
   return null;
 }
 
@@ -90,9 +91,11 @@ app.get("/", (req, res) => {
 // new registration page
 app.get("/register", (req, res) => {
   const userID = req.cookies["user_id"]; 
+
   if (userID) {
     return res.redirect("/urls")
   }
+
   const templateVars = {user : null};
   res.render("register", templateVars)
 })
@@ -100,9 +103,11 @@ app.get("/register", (req, res) => {
 // login page
 app.get("/login", (req, res) => {
   const userID = req.cookies["user_id"]; 
+
   if (userID) {
     return res.redirect("/urls")
   }
+
   const templateVars = {user : null};
   res.render("login", templateVars)
 })
@@ -131,22 +136,26 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
     user: users[userID]
   };
+
   if (!userID) {
     return res.redirect("/login")
   }
+
   res.render("urls_new", templateVars);
 });
 
 // redirect new URL to long URL: route /u/shortURL to longURL
 app.get("/u/:id", (req, res) => {
   const newURL = req.params.id;
+
   for (const urlID in urlDatabase) {
     if (urlID === newURL) {
       const longURL = urlDatabase[newURL].longURL;
       return res.redirect(longURL);
     }
   }
-res.send("URL does not exist!");
+
+  res.status(400).send('Error: Short URL does not exist!');
 });
 
 // short URL page
@@ -169,13 +178,13 @@ app.get("/urls/:id", (req, res) => {
       };
       return res.render("urls_show", templateVars);
     } else {
-      return res.send("URL does not exist!");
+      return res.status(400).send('Error: Short URL does not exist!');
     }
   }
   res.send("Login or register first!")
 });
 
-/** Post Requests */
+/*********** Post Requests ************/
 
 // new user register
 app.post("/register", (req, res) => {
@@ -217,14 +226,48 @@ app.post("/urls", (req, res) => {
 
 // delete url function
 app.post("/urls/:id/delete", (req, res) => {
+  const userID = req.cookies["user_id"];
   const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
+  const shortURLArray = Object.keys(urlDatabase)
+  const usersUrls = urlsForUser(userID)
+  const usersURLArray = Object.keys(usersUrls)
+  
+  if (!shortURLArray.includes(id)) {
+    return res.status(400).send('Error: Short URL does not exist!');
+  }
+
+  if (!userID) {
+    return res.status(401).send('Error: Invalid credentials.');
+  }
+
+  if (!usersURLArray.includes(id)) {
+    return res.status(403).send('Error: Unauthorized User.');
+  }
+
   delete urlDatabase[id];
   res.redirect("/urls");
 });
 
 // edit url function
-app.post("/urls/:id/edit", (req, res) => {
+app.post("/urls/:id", (req, res) => {
+  const userID = req.cookies["user_id"];
   const id = req.params.id;
+  const shortURLArray = Object.keys(urlDatabase)
+  const usersUrls = urlsForUser(userID)
+  const usersURLArray = Object.keys(usersUrls)
+
+  if (!shortURLArray.includes(id)) {
+    return res.status(400).send('Error: Short URL does not exist!');
+  }
+
+  if (!userID) {
+    return res.status(401).send('Error: Invalid credentials.');
+  }
+
+  if (!usersURLArray.includes(id)) {
+    return res.status(403).send('Error: Unauthorized User.');
+  }
+
   const newURL = req.body.editURL;
   urlDatabase[id].longURL = newURL;
   res.redirect("/urls");
