@@ -151,22 +151,28 @@ res.send("URL does not exist!");
 
 // short URL page
 app.get("/urls/:id", (req, res) => {
-  const id = req.params.id
-  const shortURLArray = Object.keys(urlDatabase)
-  const userID = req.cookies["user_id"]; 
+  const userID = req.cookies["user_id"];
 
-  // check if short URL is already stored before loading urls_show page
-  if (shortURLArray.includes(id)) {
-    const longURL = urlDatabase[id].longURL;
-    const templateVars = { 
-      id: id, 
-      longURL: longURL,
-      user: users[userID]
-    };
-    res.render("urls_show", templateVars);
-  } else {
-return res.send("URL does not exist!");
+  // check if user is logged in
+  if (userID) {
+    const id = req.params.id
+    const usersUrls = urlsForUser(userID)
+    const shortURLArray = Object.keys(usersUrls)
+
+    // check if short URL is found in user's account
+    if (shortURLArray.includes(id)) {
+      const longURL = usersUrls[id].longURL;
+      const templateVars = {
+        id: id,
+        longURL: longURL,
+        user: users[userID]
+      };
+      return res.render("urls_show", templateVars);
+    } else {
+      return res.send("URL does not exist!");
+    }
   }
+  res.send("Login or register first!")
 });
 
 /** Post Requests */
