@@ -44,6 +44,18 @@ const urlDatabase = {
     longURL: "https://www.google.ca",
     userID: "userRandomID",
   },
+  s9fhGs: {
+    longURL: "https://www.yahoo.ca",
+    userID: "userRandomID",
+  },
+  g6na7a: {
+    longURL: "https://www.wikipedia.org",
+    userID: "user2RandomID",
+  },
+  njd7ql: {
+    longURL: "https://www.netflix.com",
+    userID: "user2RandomID",
+  },
 };
 
 // user lookup function
@@ -54,6 +66,20 @@ const userLookup = function (email) {
     }
   }
   return null;
+}
+
+// url lookup by user function
+const urlsForUser = function (userID) {
+  const filteredURLs = {};
+
+  for (const key in urlDatabase) {
+    const url = urlDatabase[key];
+    if (url.userID === userID) {
+      filteredURLs[key] = url;
+    }
+  }
+
+  return filteredURLs;
 }
 
 /** Get Requests */
@@ -84,11 +110,19 @@ app.get("/login", (req, res) => {
 // urls page
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"]; 
-  const templateVars = { 
-    urls: urlDatabase,
-    user: users[userID] 
-  };
-  res.render("urls_index", templateVars);
+
+  if (userID) {
+  // urlsForUser() function to filter out only urls associated with user
+  const urls = urlsForUser(userID)
+
+    const templateVars = { 
+      urls: urls,
+      user: users[userID] 
+    };
+    return res.render("urls_index", templateVars);
+  }
+
+  res.send("Log in or register first!");
 });
 
 // create a new URL page
@@ -166,7 +200,7 @@ app.post("/urls", (req, res) => {
   const userInput = req.body.longURL
   const userID = req.cookies["user_id"];
   if (!userID) {
-    return res.send("<html><body><b>Please login first to shorten URL!</b></body></html>\n");
+    return res.send("Login first to shorten URL!");
   }
   urlDatabase[newUrlID] = { 
     longURL: userInput,
