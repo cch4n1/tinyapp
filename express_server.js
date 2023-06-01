@@ -139,13 +139,15 @@ const urlsForUser = function (userID) {
 //                    Routes                      //
 ////////////////////////////////////////////////////
 
-/*********** Get Requests ************/
+/**************************************
+ *            Get Requests
+ **************************************/
 
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-// new registration page
+//******* New Registration Page *******// 
 app.get("/register", (req, res) => {
   const userID = req.cookies["user_id"]; 
 
@@ -157,7 +159,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars)
 })
 
-// login page
+//************* Login Page **************//
 app.get("/login", (req, res) => {
   const userID = req.cookies["user_id"]; 
 
@@ -169,12 +171,11 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars)
 })
 
-// urls page
+//************** URLS Page **************//
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"]; 
 
   if (userID) {
-  // urlsForUser() function to filter out only urls associated with user
   const urls = urlsForUser(userID)
 
     const templateVars = { 
@@ -187,7 +188,7 @@ app.get("/urls", (req, res) => {
   return res.send("Log in or register first!");
 });
 
-// create a new URL page
+//******* Create a New URL Page *******//
 app.get("/urls/new", (req, res) => {
   const userID = req.cookies["user_id"]; 
   const templateVars = { 
@@ -201,7 +202,10 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-// redirect new URL to long URL: route /u/shortURL to longURL
+/********* URL Redirection *********
+ * redirects short-URL to long-URL: 
+ * route: /u/shortURL to longURL
+ */
 app.get("/u/:id", (req, res) => {
   const newURL = req.params.id;
 
@@ -215,7 +219,7 @@ app.get("/u/:id", (req, res) => {
   res.status(400).send('Error: Short URL does not exist!');
 });
 
-// short URL page
+//********* Short URL Page *********//
 app.get("/urls/:id", (req, res) => {
   const userID = req.cookies["user_id"];
 
@@ -241,9 +245,11 @@ app.get("/urls/:id", (req, res) => {
   res.send("Login or register first!")
 });
 
-/*********** Post Requests ************/
+/**************************************
+ *            Post Requests
+ **************************************/
 
-// new user register
+//********* Register New User *********//
 app.post("/register", (req, res) => {
   const email = req.body.email
   const password = req.body.password
@@ -267,7 +273,7 @@ app.post("/register", (req, res) => {
   }
 });
 
-// cookie login function 
+//************* Cookie Login *************//
 app.post("/login", (req, res) => {
   const userID = req.cookies["user_id"];
   const email = req.body.email
@@ -284,13 +290,13 @@ app.post("/login", (req, res) => {
   }
 })
 
-// cookie logout function - clear cookie
+//************* Cookie Logout *************//
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id')
+  res.clearCookie('user_id') //clears cookie
   res.redirect("/login");
 })
 
-// add new url function
+//************* Add New URL *************//
 app.post("/urls", (req, res) => {
   const newUrlID = generateRandomString()
   const userInput = req.body.longURL
@@ -305,7 +311,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newUrlID}`)
 });
 
-// delete url function
+//************* Delete URL *************//
 app.post("/urls/:id/delete", (req, res) => {
   const userID = req.cookies["user_id"];
   const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
@@ -329,7 +335,7 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// edit url function
+//************* Edit URL *************//
 app.post("/urls/:id", (req, res) => {
   const userID = req.cookies["user_id"];
   const id = req.params.id;
