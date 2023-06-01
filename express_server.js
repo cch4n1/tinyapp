@@ -1,26 +1,40 @@
+////////////////////////////////////////////////////
+//                  Requires                      //
+////////////////////////////////////////////////////
+
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const morgan = require("morgan");
+const bcrypt = require("bcryptjs");
+
+////////////////////////////////////////////////////
+//                  Initialization                //
+////////////////////////////////////////////////////
+
 const app = express();
 const PORT = 8080; // default port 8080
 
-app.set("view engine", "ejs");
+////////////////////////////////////////////////////
+//                    Middleware                  //
+////////////////////////////////////////////////////
+
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser())
+app.use(cookieParser());
+app.use(morgan('dev'));
 
-// generate random string for new URL
-function generateRandomString() {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  
-  for (let i = 0; i < 6; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters.charAt(randomIndex);
-  }
-  
-  return result;
-}
+////////////////////////////////////////////////////
+//                  Configuration                 //
+////////////////////////////////////////////////////
 
-// users database
+app.set("view engine", "ejs");
+
+////////////////////////////////////////////////////
+//                    Databases                   //
+////////////////////////////////////////////////////
+
+/*****************
+ * Users Database
+ *****************/
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -34,7 +48,9 @@ const users = {
   },
 };
 
-// url database
+/*****************
+ * Url Database
+ *****************/
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -58,7 +74,36 @@ const urlDatabase = {
   },
 };
 
-// user lookup function
+////////////////////////////////////////////////////
+//                    Functions                   //
+////////////////////////////////////////////////////
+
+
+/**
+ * Generate Random String Function: 
+ * This function generates a random string. 
+ * used for new short-URL and user-ID.
+ * @returns {string} random 6-digit string
+ */
+function generateRandomString() {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomIndex);
+  }
+  
+  return result;
+}
+
+/**
+ * User Lookup Function:
+ * Takes provided email and looks up user in users database.
+ * Returns an object with user info.
+ * @param {string} email - email of user to lookup
+ * @returns {object|null} - user object if found, or null if not
+ */
 const userLookup = function (email) {
   for (const userID in users) {
     if (users[userID].email === email) {
@@ -69,7 +114,14 @@ const userLookup = function (email) {
   return null;
 }
 
-// url lookup by user function
+/**
+ * Urls For User Function:
+ * Takes user-ID, looks up and retrieves all URLs
+ * in URL Databse associated with user-ID. 
+ * Returns an object with all URLs.
+ * @param {string} userID 
+ * @returns {object} - object with all URLs
+ */
 const urlsForUser = function (userID) {
   const filteredURLs = {};
 
@@ -83,7 +135,12 @@ const urlsForUser = function (userID) {
   return filteredURLs;
 }
 
-/** Get Requests */
+////////////////////////////////////////////////////
+//                    Routes                      //
+////////////////////////////////////////////////////
+
+/*********** Get Requests ************/
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -127,7 +184,7 @@ app.get("/urls", (req, res) => {
     return res.render("urls_index", templateVars);
   }
 
-  res.send("Log in or register first!");
+  return res.send("Log in or register first!");
 });
 
 // create a new URL page
@@ -190,6 +247,7 @@ app.get("/urls/:id", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email
   const password = req.body.password
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const user = userLookup(email)
 
   // check if login credentials are valid
@@ -202,12 +260,35 @@ app.post("/register", (req, res) => {
     users[userID] = {
       id: userID,
       email: email,
-      password: password
+      password: hashedPassword
     }
     res.cookie("user_id", userID)
     res.redirect("/urls")
   }
 });
+
+// cookie login function 
+app.post("/login", (req, res) => {
+  const userID = req.cookies["user_id"];
+  const email = req.body.email
+  const password = req.body.password
+  const user = userLookup(email)
+
+  // check if user is logged in and credentials are valid
+  if (user && bcrypt.compareSync(password, user.password)) {
+    res.cookie("user_id", user.id);
+    return res.redirect("/urls");
+
+  } else {
+    return res.status(403).send('Error: Invalid credentials.');
+  }
+})
+
+// cookie logout function - clear cookie
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id')
+  res.redirect("/login");
+})
 
 // add new url function
 app.post("/urls", (req, res) => {
@@ -272,31 +353,6 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[id].longURL = newURL;
   res.redirect("/urls");
 });
-
-// cookie login function 
-app.post("/login", (req, res) => {
-  const email = req.body.email
-  const password = req.body.password
-  const user = userLookup(email)
-  let validLogin = false
-
-  // check if login credentials are valid
-  if (user && user.password === password) {
-    validLogin = true;
-    res.cookie("user_id", user.id);
-    res.redirect("/urls");
-  } 
-
-  if (!validLogin) {
-    res.status(403).send('Error: Invalid credentials.');
-  }
-})
-
-// cookie logout function - clear cookie
-app.post("/logout", (req, res) => {
-  res.clearCookie('user_id')
-  res.redirect("/login");
-})
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
