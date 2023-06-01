@@ -3,24 +3,28 @@
 ////////////////////////////////////////////////////
 
 const express = require("express");
-const cookieParser = require('cookie-parser');
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
+const cookieSession = require("cookie-session");
 
 ////////////////////////////////////////////////////
 //                  Initialization                //
 ////////////////////////////////////////////////////
 
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
 ////////////////////////////////////////////////////
 //                    Middleware                  //
 ////////////////////////////////////////////////////
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(morgan('dev'));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['secret-key'],
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 ////////////////////////////////////////////////////
 //                  Configuration                 //
@@ -44,8 +48,7 @@ app.listen(PORT, () => {
 /*****************
  * Users Database
  *****************/
-const users = {
-};
+const users = {};
 
 /*****************
  * Url Database
@@ -148,7 +151,7 @@ app.get("/", (req, res) => {
 
 //******* New Registration Page *******// 
 app.get("/register", (req, res) => {
-  const userID = req.cookies["user_id"]; 
+  const userID = req.session.user_id; 
 
   if (userID) {
     return res.redirect("/urls")
@@ -160,7 +163,7 @@ app.get("/register", (req, res) => {
 
 //************* Login Page **************//
 app.get("/login", (req, res) => {
-  const userID = req.cookies["user_id"]; 
+  const userID = req.session.user_id;
 
   if (userID) {
     return res.redirect("/urls")
@@ -172,7 +175,7 @@ app.get("/login", (req, res) => {
 
 //************** URLS Page **************//
 app.get("/urls", (req, res) => {
-  const userID = req.cookies["user_id"]; 
+  const userID = req.session.user_id;
 
   if (userID) {
   const urls = urlsForUser(userID)
@@ -189,7 +192,7 @@ app.get("/urls", (req, res) => {
 
 //******* Create a New URL Page *******//
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookies["user_id"]; 
+  const userID = req.session.user_id;
   const templateVars = { 
     user: users[userID]
   };
@@ -220,7 +223,7 @@ app.get("/u/:id", (req, res) => {
 
 //********* Short URL Page *********//
 app.get("/urls/:id", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   // check if user is logged in
   if (userID) {
@@ -267,52 +270,60 @@ app.post("/register", (req, res) => {
       email: email,
       password: hashedPassword
     }
-    res.cookie("user_id", userID)
+
+    // Set user ID in session
+    req.session.user_id = userID; 
+
     res.redirect("/urls")
   }
 });
 
 //************* Cookie Login *************//
 app.post("/login", (req, res) => {
-  const userID = req.cookies["user_id"];
   const email = req.body.email
   const password = req.body.password
   const user = userLookup(email)
 
   // check if user is logged in and credentials are valid
   if (user && bcrypt.compareSync(password, user.password)) {
+    req.session.user_id = user.id; // Set user ID in the session
     res.cookie("user_id", user.id);
     return res.redirect("/urls");
 
   } else {
     return res.status(403).send('Error: Invalid credentials.');
   }
-})
+});
 
 //************* Cookie Logout *************//
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id') //clears cookie
+  req.session = null; // Clear the session
   res.redirect("/login");
 })
 
 //************* Add New URL *************//
 app.post("/urls", (req, res) => {
-  const newUrlID = generateRandomString()
-  const userInput = req.body.longURL
-  const userID = req.cookies["user_id"];
-  if (!userID) {
-    return res.send("Login first to shorten URL!");
+  const userID = req.session.user_id;
+
+  if (userID) {
+    const shortURL = generateRandomString();
+    const longURL = req.body.longURL;
+    
+    urlDatabase[shortURL] = { 
+      longURL: longURL,
+      userID: userID
+    };
+
+    return res.redirect(`/urls/${shortURL}`);
   }
-  urlDatabase[newUrlID] = { 
-    longURL: userInput,
-    userID: userID
-  }
-  res.redirect(`/urls/${newUrlID}`)
+
+  return res.send("Log in or register first!");
 });
 
 //************* Delete URL *************//
 app.post("/urls/:id/delete", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
+  
   const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
   const shortURLArray = Object.keys(urlDatabase)
   const usersUrls = urlsForUser(userID)
@@ -336,7 +347,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 //************* Edit URL *************//
 app.post("/urls/:id", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   const id = req.params.id;
   const shortURLArray = Object.keys(urlDatabase)
   const usersUrls = urlsForUser(userID)
