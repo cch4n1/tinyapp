@@ -7,6 +7,9 @@ const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
 
+// helper functions
+const getUserByEmail = require("./helpers.js")
+
 ////////////////////////////////////////////////////
 //                  Initialization                //
 ////////////////////////////////////////////////////
@@ -99,22 +102,7 @@ function generateRandomString() {
   return result;
 }
 
-/**
- * User Lookup Function:
- * Takes provided email and looks up user in users database.
- * Returns an object with user info.
- * @param {string} email - email of user to lookup
- * @returns {object|null} - user object if found, or null if not
- */
-const userLookup = function (email) {
-  for (const userID in users) {
-    if (users[userID].email === email) {
-      return users[userID]
-    }
-  }
 
-  return null;
-}
 
 /**
  * Urls For User Function:
@@ -256,7 +244,7 @@ app.post("/register", (req, res) => {
   const email = req.body.email
   const password = req.body.password
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const user = userLookup(email)
+  const user = getUserByEmail(email, users)
 
   // check if login credentials are valid
   if (!email || !password || user) {
@@ -282,7 +270,7 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
-  const user = userLookup(email)
+  const user = getUserByEmail(email, users)
 
   // check if user is logged in and credentials are valid
   if (user && bcrypt.compareSync(password, user.password)) {
