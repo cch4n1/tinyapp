@@ -21,8 +21,8 @@
           Short URL ID: <a href="<%= longURL %>"><%= id %></a>
         </p>
       </div>
-      <div class="card-footer text-muted">
-        <p class="card-text">
+      <div class="card-footer text-muted d-flex justify-content-center">
+        <div>
           <h3>Edit URL</h3>
           <form class="form-inline" action="/urls/<%= id %>" method="POST">
             <label for="editURL">New URL:</label>
@@ -35,7 +35,7 @@
     />
     <button type="submit" class="btn btn-primary">Submit</button>
           </form>
-        </p>
+        </div>
       </div>
     </div>
     <!-- Bootstrap JS -->

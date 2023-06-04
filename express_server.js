@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
 
 // helper functions
-const getUserByEmail = require("./helpers.js")
+const { getUserByEmail } = require("./helpers.js")
 
 ////////////////////////////////////////////////////
 //                  Initialization                //
@@ -134,7 +134,13 @@ const urlsForUser = function (userID) {
  **************************************/
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const userID = req.session.user_id; 
+
+  if (userID) {
+    return res.redirect("/urls")
+  }
+
+  res.redirect("/login")
 });
 
 //******* New Registration Page *******// 
@@ -175,7 +181,7 @@ app.get("/urls", (req, res) => {
     return res.render("urls_index", templateVars);
   }
 
-  return res.send("Log in or register first!");
+  return res.status(403).send(`<a href="/login">Log in</a> or <a href="/register">register</a> first!`);
 });
 
 //******* Create a New URL Page *******//
@@ -209,7 +215,7 @@ app.get("/u/:id", (req, res) => {
   res.status(400).send('Error: Short URL does not exist!');
 });
 
-//********* Short URL Page *********//
+//********* Edit Short URL Page *********//
 app.get("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
 
@@ -228,11 +234,12 @@ app.get("/urls/:id", (req, res) => {
         user: users[userID]
       };
       return res.render("urls_show", templateVars);
+
     } else {
       return res.status(400).send('Error: Short URL does not exist!');
     }
   }
-  res.send("Login or register first!")
+  res.status(403).send(`<a href="/login">Log in</a> or <a href="/register">register</a> first!`);
 });
 
 /**************************************
@@ -247,9 +254,13 @@ app.post("/register", (req, res) => {
   const user = getUserByEmail(email, users)
 
   // check if login credentials are valid
-  if (!email || !password || user) {
-    res.status(400).send('Error: Invalid credentials.');
-  } else {
+  if (!email || !password) {
+    return res.status(400).send(`Error: Invalid credentials. Please try again: <a href="/register">Register</a>`);
+  } 
+
+  if (user) {
+    return res.status(403).send(`Username exists already! Please try again: <a href="/register">Register</a>`);
+  }
     const userID = generateRandomString()
 
     // Update the users database to store the new user id, email, password
@@ -263,7 +274,7 @@ app.post("/register", (req, res) => {
     req.session.user_id = userID; 
 
     res.redirect("/urls")
-  }
+
 });
 
 //************* Cookie Login *************//
@@ -279,7 +290,7 @@ app.post("/login", (req, res) => {
     return res.redirect("/urls");
 
   } else {
-    return res.status(403).send('Error: Invalid credentials.');
+    return res.status(403).send(`Error: Invalid credentials. Return to <a href="/login">login</a> page.`);
   }
 });
 
@@ -305,32 +316,7 @@ app.post("/urls", (req, res) => {
     return res.redirect(`/urls/${shortURL}`);
   }
 
-  return res.send("Log in or register first!");
-});
-
-//************* Delete URL *************//
-app.post("/urls/:id/delete", (req, res) => {
-  const userID = req.session.user_id;
-  
-  const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
-  const shortURLArray = Object.keys(urlDatabase)
-  const usersUrls = urlsForUser(userID)
-  const usersURLArray = Object.keys(usersUrls)
-  
-  if (!shortURLArray.includes(id)) {
-    return res.status(400).send('Error: Short URL does not exist!');
-  }
-
-  if (!userID) {
-    return res.status(401).send('Error: Invalid credentials.');
-  }
-
-  if (!usersURLArray.includes(id)) {
-    return res.status(403).send('Error: Unauthorized User.');
-  }
-
-  delete urlDatabase[id];
-  res.redirect("/urls");
+  return res.status(403).send(`login or register first!`);
 });
 
 //************* Edit URL *************//
@@ -355,6 +341,31 @@ app.post("/urls/:id", (req, res) => {
 
   const newURL = req.body.editURL;
   urlDatabase[id].longURL = newURL;
+  res.redirect("/urls");
+});
+
+//************* Delete URL *************//
+app.post("/urls/:id/delete", (req, res) => {
+  const userID = req.session.user_id;
+  
+  const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
+  const shortURLArray = Object.keys(urlDatabase)
+  const usersUrls = urlsForUser(userID)
+  const usersURLArray = Object.keys(usersUrls)
+  
+  if (!shortURLArray.includes(id)) {
+    return res.status(400).send('Error: Short URL does not exist!');
+  }
+
+  if (!userID) {
+    return res.status(401).send('Error: Invalid credentials.');
+  }
+
+  if (!usersURLArray.includes(id)) {
+    return res.status(403).send('Error: Unauthorized User.');
+  }
+
+  delete urlDatabase[id];
   res.redirect("/urls");
 });
 
