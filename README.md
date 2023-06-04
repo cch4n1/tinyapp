@@ -38,8 +38,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Screenshots
 
-!["Screenshot of URLs page"](#)
-!["Screenshot of New URL page"](#)
-!["Screenshot of Login page"](#)
-!["Screenshot of Tiny URL page"](#)
+!["Screenshot of URLs page"](https://github.com/cch4n1/tinyapp/blob/master/docs/urls-page.png)
+!["Screenshot of New URL page"](https://github.com/cch4n1/tinyapp/blob/master/docs/new-url-page.png)
+!["Screenshot of Login page"](https://github.com/cch4n1/tinyapp/blob/master/docs/login-page.png)
+!["Screenshot of Tiny URL page"](https://github.com/cch4n1/tinyapp/blob/master/docs/tiny-url-page.png)
 
