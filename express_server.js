@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
 
 // helper functions
-const { getUserByEmail } = require("./helpers.js")
+const { getUserByEmail } = require("./helpers.js");
 
 ////////////////////////////////////////////////////
 //                  Initialization                //
@@ -85,20 +85,20 @@ const urlDatabase = {
 
 
 /**
- * Generate Random String Function: 
- * This function generates a random string. 
+ * Generate Random String Function:
+ * This function generates a random string.
  * used for new short-URL and user-ID.
  * @returns {string} random 6-digit string
  */
 function generateRandomString() {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  
+
   for (let i = 0; i < 6; i++) {
     const randomIndex = Math.floor(Math.random() * characters.length);
     result += characters.charAt(randomIndex);
   }
-  
+
   return result;
 }
 
@@ -107,12 +107,12 @@ function generateRandomString() {
 /**
  * Urls For User Function:
  * Takes user-ID, looks up and retrieves all URLs
- * in URL Databse associated with user-ID. 
+ * in URL Databse associated with user-ID.
  * Returns an object with all URLs.
- * @param {string} userID 
+ * @param {string} userID
  * @returns {object} - object with all URLs
  */
-const urlsForUser = function (userID) {
+const urlsForUser = function(userID) {
   const filteredURLs = {};
 
   for (const key in urlDatabase) {
@@ -123,7 +123,7 @@ const urlsForUser = function (userID) {
   }
 
   return filteredURLs;
-}
+};
 
 ////////////////////////////////////////////////////
 //                    Routes                      //
@@ -134,49 +134,49 @@ const urlsForUser = function (userID) {
  **************************************/
 
 app.get("/", (req, res) => {
-  const userID = req.session.user_id; 
+  const userID = req.session.user_id;
 
   if (userID) {
-    return res.redirect("/urls")
+    return res.redirect("/urls");
   }
 
-  res.redirect("/login")
+  res.redirect("/login");
 });
 
-//******* New Registration Page *******// 
+//******* New Registration Page *******//
 app.get("/register", (req, res) => {
-  const userID = req.session.user_id; 
+  const userID = req.session.user_id;
 
   if (userID) {
-    return res.redirect("/urls")
+    return res.redirect("/urls");
   }
 
-  const templateVars = {user : null};
-  res.render("register", templateVars)
-})
+  const templateVars = { user: null };
+  res.render("register", templateVars);
+});
 
 //************* Login Page **************//
 app.get("/login", (req, res) => {
   const userID = req.session.user_id;
 
   if (userID) {
-    return res.redirect("/urls")
+    return res.redirect("/urls");
   }
 
-  const templateVars = {user : null};
-  res.render("login", templateVars)
-})
+  const templateVars = { user: null };
+  res.render("login", templateVars);
+});
 
 //************** URLS Page **************//
 app.get("/urls", (req, res) => {
   const userID = req.session.user_id;
 
   if (userID) {
-  const urls = urlsForUser(userID)
+    const urls = urlsForUser(userID);
 
-    const templateVars = { 
+    const templateVars = {
       urls: urls,
-      user: users[userID] 
+      user: users[userID]
     };
     return res.render("urls_index", templateVars);
   }
@@ -187,19 +187,19 @@ app.get("/urls", (req, res) => {
 //******* Create a New URL Page *******//
 app.get("/urls/new", (req, res) => {
   const userID = req.session.user_id;
-  const templateVars = { 
+  const templateVars = {
     user: users[userID]
   };
 
   if (!userID) {
-    return res.redirect("/login")
+    return res.redirect("/login");
   }
 
   res.render("urls_new", templateVars);
 });
 
 /********* URL Redirection *********
- * redirects short-URL to long-URL: 
+ * redirects short-URL to long-URL:
  * route: /u/shortURL to longURL
  */
 app.get("/u/:id", (req, res) => {
@@ -221,9 +221,9 @@ app.get("/urls/:id", (req, res) => {
 
   // check if user is logged in
   if (userID) {
-    const id = req.params.id
-    const usersUrls = urlsForUser(userID)
-    const shortURLArray = Object.keys(usersUrls)
+    const id = req.params.id;
+    const usersUrls = urlsForUser(userID);
+    const shortURLArray = Object.keys(usersUrls);
 
     // check if short URL is found in user's account
     if (shortURLArray.includes(id)) {
@@ -248,40 +248,40 @@ app.get("/urls/:id", (req, res) => {
 
 //********* Register New User *********//
 app.post("/register", (req, res) => {
-  const email = req.body.email
-  const password = req.body.password
+  const email = req.body.email;
+  const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const user = getUserByEmail(email, users)
+  const user = getUserByEmail(email, users);
 
   // check if login credentials are valid
   if (!email || !password) {
     return res.status(400).send(`Error: Invalid credentials. Please try again: <a href="/register">Register</a>`);
-  } 
+  }
 
   if (user) {
     return res.status(403).send(`Username exists already! Please try again: <a href="/register">Register</a>`);
   }
-    const userID = generateRandomString()
+  const userID = generateRandomString();
 
-    // Update the users database to store the new user id, email, password
-    users[userID] = {
-      id: userID,
-      email: email,
-      password: hashedPassword
-    }
+  // Update the users database to store the new user id, email, password
+  users[userID] = {
+    id: userID,
+    email: email,
+    password: hashedPassword
+  };
 
-    // Set user ID in session
-    req.session.user_id = userID; 
+  // Set user ID in session
+  req.session.user_id = userID;
 
-    res.redirect("/urls")
+  res.redirect("/urls");
 
 });
 
 //************* Cookie Login *************//
 app.post("/login", (req, res) => {
-  const email = req.body.email
-  const password = req.body.password
-  const user = getUserByEmail(email, users)
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = getUserByEmail(email, users);
 
   // check if user is logged in and credentials are valid
   if (user && bcrypt.compareSync(password, user.password)) {
@@ -298,7 +298,7 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   req.session = null; // Clear the session
   res.redirect("/login");
-})
+});
 
 //************* Add New URL *************//
 app.post("/urls", (req, res) => {
@@ -307,8 +307,8 @@ app.post("/urls", (req, res) => {
   if (userID) {
     const shortURL = generateRandomString();
     const longURL = req.body.longURL;
-    
-    urlDatabase[shortURL] = { 
+
+    urlDatabase[shortURL] = {
       longURL: longURL,
       userID: userID
     };
@@ -323,9 +323,9 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const id = req.params.id;
-  const shortURLArray = Object.keys(urlDatabase)
-  const usersUrls = urlsForUser(userID)
-  const usersURLArray = Object.keys(usersUrls)
+  const shortURLArray = Object.keys(urlDatabase);
+  const usersUrls = urlsForUser(userID);
+  const usersURLArray = Object.keys(usersUrls);
 
   if (!shortURLArray.includes(id)) {
     return res.status(400).send('Error: Short URL does not exist!');
@@ -347,12 +347,12 @@ app.post("/urls/:id", (req, res) => {
 //************* Delete URL *************//
 app.post("/urls/:id/delete", (req, res) => {
   const userID = req.session.user_id;
-  
-  const id = req.params.id  // get dynamic part of URL (:id) and assign to variable id. 
-  const shortURLArray = Object.keys(urlDatabase)
-  const usersUrls = urlsForUser(userID)
-  const usersURLArray = Object.keys(usersUrls)
-  
+
+  const id = req.params.id;  // get dynamic part of URL (:id) and assign to variable id.
+  const shortURLArray = Object.keys(urlDatabase);
+  const usersUrls = urlsForUser(userID);
+  const usersURLArray = Object.keys(usersUrls);
+
   if (!shortURLArray.includes(id)) {
     return res.status(400).send('Error: Short URL does not exist!');
   }
